@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sistem Peminatan Akuntansi</title>
+    <style>
+        body{
+            font-family: Arial;
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .card{
+            border:1px solid #ddd;
+            border-radius:10px;
+            padding:20px;
+            margin-top:20px;
+        }
+
+        button{
+            padding:10px 20px;
+            cursor:pointer;
+        }
+
+        #dashboard{
+            display:none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="login">
+    <h1>Sistem Peminatan Akuntansi</h1>
+
+    <input type="text" id="nama" placeholder="Masukkan Nama" style="width:100%;padding:10px">
+    <br><br>
+
+    <button onclick="login()">Login</button>
+</div>
+
+<div id="dashboard">
+
+    <h2 id="welcome"></h2>
+
+    <div class="card">
+        <h3>Akuntansi Keuangan</h3>
+        <p>Fokus pada penyusunan dan analisis laporan keuangan.</p>
+    </div>
+
+    <div class="card">
+        <h3>Perpajakan</h3>
+        <p>Fokus pada perhitungan, pelaporan, dan konsultasi pajak.</p>
+    </div>
+
+    <div class="card">
+        <h3>Audit</h3>
+        <p>Fokus pada pemeriksaan laporan keuangan dan pengendalian internal.</p>
+    </div>
+
+    <br>
+
+    <input type="checkbox" id="setuju">
+    Saya telah membaca seluruh informasi
+
+    <br><br>
+
+    <button onclick="lanjut()">Lanjut ke Form</button>
+
+    <div id="formArea"></div>
+
+</div>
+
+<script>
+
+function login(){
+
+    let nama = document.getElementById("nama").value;
+
+    if(nama==""){
+        alert("Masukkan nama terlebih dahulu");
+        return;
+    }
+
+    document.getElementById("login").style.display="none";
+    document.getElementById("dashboard").style.display="block";
+
+    document.getElementById("welcome").innerHTML=
+    "Selamat Datang, " + nama;
+}
+
+function lanjut(){
+
+    if(!document.getElementById("setuju").checked){
+        alert("Silakan baca dan centang terlebih dahulu");
+        return;
+    }
+
+    document.getElementById("formArea").innerHTML=
+    `
+    <div class="card">
+    <h2>Form Peminatan</h2>
+
+    <p>Nanti Google Form akan ditampilkan di sini.</p>
+
+    <h3>Terima Kasih</h3>
+
+    <p>Data Anda berhasil dikirim.</p>
+
+    <p><b>GOOD LUCK & SEE YOU AT THE TOP 🚀</b></p>
+    </div>
+    `;
+}
+
+</script>
+
+</body>
+</html>
