@@ -155,7 +155,8 @@ h:70
 
 let obstacles = [];
 let coins = [];
-
+const mobilImg = new Image();
+mobilImg.src = "MOBIL MBG";
 function startGame(){
 document.getElementById("bgMusic").play();
 document.getElementById("menu").style.display="none";
@@ -247,17 +248,13 @@ ctx.setLineDash([]);
 
 function drawPlayer(){
 
-ctx.fillStyle="#2563eb";
-
-ctx.fillRect(
-player.x-player.w/2,
+ctx.drawImage(
+mobilImg,
+player.x - 40,
 player.y,
-player.w,
-player.h
+80,
+80
 );
-
-ctx.fillStyle="white";
-ctx.fillText("👔",player.x-10,player.y+45);
 
 }
 
