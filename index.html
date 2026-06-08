@@ -4,237 +4,365 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Siapa Mau Jadi Akuntan?</title>
+<title>Auditor Runner</title>
 
 <style>
-
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:'Segoe UI',sans-serif;
+font-family:Segoe UI,sans-serif;
 }
 
 body{
 background:linear-gradient(135deg,#0f172a,#1e3a8a,#2563eb);
-min-height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
-padding:20px;
+height:100vh;
+overflow:hidden;
 }
 
-.container{
-width:100%;
-max-width:800px;
-background:white;
-border-radius:25px;
-padding:40px;
-box-shadow:0 20px 50px rgba(0,0,0,.3);
+#menu{
 text-align:center;
+color:white;
 }
 
-h1{
-color:#1565c0;
-margin-bottom:15px;
-}
-
-p{
-color:#666;
+#menu h1{
+font-size:48px;
 margin-bottom:20px;
+}
+
+#menu p{
+margin-bottom:25px;
 }
 
 button{
-width:100%;
-padding:15px;
+padding:15px 30px;
 border:none;
 border-radius:12px;
-background:#1565c0;
-color:white;
-font-size:16px;
+background:#f59e0b;
+font-size:18px;
 font-weight:bold;
 cursor:pointer;
-margin-top:10px;
-transition:.3s;
 }
 
 button:hover{
-transform:translateY(-3px);
+transform:scale(1.05);
 }
 
-#game{
+#gameContainer{
 display:none;
+position:relative;
 }
 
-#result{
-margin-top:20px;
-font-size:22px;
-font-weight:bold;
+canvas{
+background:#dbeafe;
+border-radius:15px;
+box-shadow:0 15px 40px rgba(0,0,0,.3);
 }
 
-.score{
-background:#eef4ff;
-padding:10px;
+#score{
+position:absolute;
+top:10px;
+left:10px;
+background:white;
+padding:10px 15px;
 border-radius:10px;
-margin-bottom:20px;
 font-weight:bold;
 }
 
+#gameOver{
+display:none;
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+background:white;
+padding:30px;
+border-radius:15px;
+text-align:center;
+box-shadow:0 10px 30px rgba(0,0,0,.3);
+}
+
+.controls{
+margin-top:15px;
+display:flex;
+gap:10px;
+justify-content:center;
+}
+
+.ctrl{
+width:80px;
+height:60px;
+font-size:30px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="container">
-
 <div id="menu">
+<h1>🏃 AUDITOR RUNNER</h1>
+<p>Hindari fraud dan kumpulkan laporan keuangan!</p>
 
-<h1>🎮 SIAPA MAU JADI AKUNTAN?</h1>
-
-<p>
-Uji pengetahuan akuntansimu dan raih skor tertinggi.
-</p>
-
-<button onclick="startGame()">
-▶ MULAI GAME
-</button>
-
+<button onclick="startGame()">▶ MULAI GAME</button>
 </div>
 
-<div id="game">
+<div id="gameContainer">
 
-<div class="score">
-Skor : <span id="score">0</span>
+<div id="score">
+Skor: <span id="scoreValue">0</span>
 </div>
 
-<h2 id="question"></h2>
+<canvas id="game" width="400" height="700"></canvas>
 
-<div id="answers"></div>
+<div id="gameOver">
+<h2>💥 GAME OVER</h2>
+<br>
+<p>Skor: <span id="finalScore"></span></p>
+<br>
+<button onclick="location.reload()">Main Lagi</button>
+</div>
 
-<div id="result"></div>
-
+<div class="controls">
+<button class="ctrl" onclick="moveLeft()">⬅️</button>
+<button class="ctrl" onclick="moveRight()">➡️</button>
 </div>
 
 </div>
 
 <script>
 
-const quiz = [
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-{
-q:"Persamaan dasar akuntansi adalah?",
-a:["Aset = Liabilitas + Ekuitas","Pendapatan = Beban","Kas = Modal","Laba = Pendapatan"],
-correct:0
-},
+let running = false;
 
-{
-q:"Pajak Penghasilan disingkat?",
-a:["PPN","PBB","PPh","BPHTB"],
-correct:2
-},
+let score = 0;
 
-{
-q:"Audit bertujuan untuk?",
-a:["Membuat laporan","Menilai kewajaran laporan","Menjual produk","Membayar pajak"],
-correct:1
-},
+const lanes = [80,200,320];
 
-{
-q:"Akun Kas termasuk?",
-a:["Aset","Liabilitas","Beban","Modal"],
-correct:0
-}
+let player = {
+lane:1,
+x:200,
+y:600,
+w:50,
+h:70
+};
 
-];
-
-let current=0;
-let score=0;
+let obstacles = [];
+let coins = [];
 
 function startGame(){
 
 document.getElementById("menu").style.display="none";
-document.getElementById("game").style.display="block";
+document.getElementById("gameContainer").style.display="block";
 
-showQuestion();
+running = true;
+
+setInterval(spawnObstacle,1200);
+setInterval(spawnCoin,1500);
+
+requestAnimationFrame(loop);
 
 }
 
-function showQuestion(){
+function spawnObstacle(){
 
-let q=quiz[current];
+if(!running) return;
 
-document.getElementById("question").innerHTML=q.q;
+obstacles.push({
+x:lanes[Math.floor(Math.random()*3)]-25,
+y:-80,
+w:50,
+h:70
+});
 
-let html="";
+}
 
-q.a.forEach((ans,index)=>{
+function spawnCoin(){
 
-html+=`
-<button onclick="checkAnswer(${index})">
-${ans}
-</button>
-`;
+if(!running) return;
+
+coins.push({
+x:lanes[Math.floor(Math.random()*3)],
+y:-30,
+r:15
+});
+
+}
+
+function moveLeft(){
+
+if(player.lane>0){
+player.lane--;
+player.x=lanes[player.lane];
+}
+
+}
+
+function moveRight(){
+
+if(player.lane<2){
+player.lane++;
+player.x=lanes[player.lane];
+}
+
+}
+
+document.addEventListener("keydown",(e)=>{
+
+if(e.key==="ArrowLeft") moveLeft();
+
+if(e.key==="ArrowRight") moveRight();
 
 });
 
-document.getElementById("answers").innerHTML=html;
+function drawRoad(){
+
+ctx.fillStyle="#555";
+ctx.fillRect(40,0,320,700);
+
+ctx.strokeStyle="white";
+ctx.lineWidth=5;
+
+ctx.setLineDash([20,20]);
+
+ctx.beginPath();
+ctx.moveTo(140,0);
+ctx.lineTo(140,700);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(260,0);
+ctx.lineTo(260,700);
+ctx.stroke();
+
+ctx.setLineDash([]);
 
 }
 
-function checkAnswer(index){
+function drawPlayer(){
 
-if(index===quiz[current].correct){
+ctx.fillStyle="#2563eb";
 
-score+=10;
+ctx.fillRect(
+player.x-player.w/2,
+player.y,
+player.w,
+player.h
+);
 
-document.getElementById("result").innerHTML=
-"✅ Jawaban Benar";
-
-}else{
-
-document.getElementById("result").innerHTML=
-"❌ Jawaban Salah";
-
-}
-
-document.getElementById("score").innerHTML=score;
-
-setTimeout(()=>{
-
-current++;
-
-if(current<quiz.length){
-
-document.getElementById("result").innerHTML="";
-showQuestion();
-
-}else{
-
-finishGame();
+ctx.fillStyle="white";
+ctx.fillText("👔",player.x-10,player.y+45);
 
 }
 
-},1000);
+function drawObstacles(){
+
+ctx.fillStyle="red";
+
+obstacles.forEach(o=>{
+
+o.y += 6;
+
+ctx.fillRect(o.x,o.y,o.w,o.h);
+
+});
 
 }
 
-function finishGame(){
+function drawCoins(){
 
-document.getElementById("game").innerHTML=`
+ctx.fillStyle="gold";
 
-<h1>🏆 GAME SELESAI</h1>
+coins.forEach(c=>{
 
-<h2>Skor Akhir : ${score}</h2>
+c.y += 5;
 
-<p>
-Good Job Future Accountant 🚀
-</p>
+ctx.beginPath();
+ctx.arc(c.x,c.y,c.r,0,Math.PI*2);
+ctx.fill();
 
-<button onclick="location.reload()">
-Main Lagi
-</button>
+});
 
-`;
+}
+
+function collision(a,b){
+
+return(
+a.x-a.w/2 < b.x+b.w &&
+a.x+a.w/2 > b.x &&
+a.y < b.y+b.h &&
+a.y+a.h > b.y
+);
+
+}
+
+function loop(){
+
+if(!running) return;
+
+ctx.clearRect(0,0,400,700);
+
+drawRoad();
+
+drawPlayer();
+
+drawObstacles();
+
+drawCoins();
+
+obstacles.forEach((o,index)=>{
+
+if(collision(player,o)){
+
+gameOver();
+
+}
+
+if(o.y>750){
+
+obstacles.splice(index,1);
+
+score++;
+
+}
+
+});
+
+coins.forEach((c,index)=>{
+
+let dx = player.x-c.x;
+
+let dy = (player.y+35)-c.y;
+
+let dist = Math.sqrt(dx*dx+dy*dy);
+
+if(dist<35){
+
+score+=5;
+
+coins.splice(index,1);
+
+}
+
+});
+
+document.getElementById("scoreValue").innerText=score;
+
+requestAnimationFrame(loop);
+
+}
+
+function gameOver(){
+
+running=false;
+
+document.getElementById("finalScore").innerText=score;
+
+document.getElementById("gameOver").style.display="block";
 
 }
 
