@@ -101,7 +101,9 @@ font-size:30px;
 </head>
 
 <body>
-
+<audio id="bgMusic" loop>
+    <source src="dl.mp3" type="audio/mpeg">
+</audio>
 <div id="menu">
 <h1>🏃 AUDITOR RUNNER</h1>
 <p>Hindari fraud dan kumpulkan laporan keuangan!</p>
@@ -155,7 +157,7 @@ let obstacles = [];
 let coins = [];
 
 function startGame(){
-
+document.getElementById("bgMusic").play();
 document.getElementById("menu").style.display="none";
 document.getElementById("gameContainer").style.display="block";
 
